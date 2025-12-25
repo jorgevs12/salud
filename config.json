@@ -1,0 +1,148 @@
+{
+  "watch": {
+    "brand": "Samsung",
+    "models": ["Galaxy Watch 7", "Galaxy Watch 7 Classic", "Galaxy Watch 5", "Galaxy Watch 5 Pro"],
+    "os_support": ["Wear OS 3.0+", "Wear OS 4.0+"],
+    "min_android_version": "5.0",
+    "api": {
+      "endpoint": "https://api.health.samsung.com",
+      "version": "1.0",
+      "auth_type": "OAuth2"
+    },
+    "data_sync": {
+      "interval_minutes": 5,
+      "immediate_on_connect": true,
+      "sync_on_app_focus": true,
+      "sync_on_orientation_change": true,
+      "auto_retry": true,
+      "retry_attempts": 3,
+      "retry_interval_seconds": 5,
+      "offline_queue": true,
+      "realtime_updates": true
+    },
+    "permissions": [
+      "com.samsung.health.permission.READ",
+      "com.samsung.health.permission.WRITE"
+    ],
+    "data_types": {
+      "steps": {
+        "unit": "count",
+        "sample_type": "com.samsung.health.step_count"
+      },
+      "exercise": {
+        "unit": "minutes",
+        "sample_type": "com.samsung.health.exercise"
+      },
+      "calories_burned": {
+        "unit": "kcal",
+        "sample_type": "com.samsung.health.calories"
+      },
+      "heart_rate": {
+        "unit": "bpm",
+        "sample_type": "com.samsung.health.heart_rate"
+      },
+      "weight": {
+        "unit": "kg",
+        "sample_type": "com.samsung.health.weight"
+      },
+      "body_fat": {
+        "unit": "percent",
+        "sample_type": "com.samsung.health.body_fat"
+      }
+    }
+  },
+  "app": {
+    "name": "Mi Salud",
+    "version": "1.0.0",
+    "author": "Tu Nombre",
+    "description": "Aplicación personal de seguimiento de salud y bienestar",
+    "support_url": "https://ejemplo.com/soporte",
+    "privacy_url": "https://ejemplo.com/privacidad"
+  },
+  "features": {
+    "pwa": true,
+    "offline_support": true,
+    "notifications": true,
+    "background_sync": true,
+    "data_export": true,
+    "auto_backup": true,
+    "dark_mode": true
+  },
+  "defaults": {
+    "language": "es",
+    "timezone": "auto",
+    "date_format": "DD/MM/YYYY",
+    "time_format": "24H",
+    "units": {
+      "weight": "kg",
+      "height": "cm",
+      "calories": "kcal"
+    },
+    "goals": {
+      "daily_steps": 8000,
+      "daily_calories": 2000,
+      "exercise_minutes": 150,
+      "water_liters": 2
+    },
+    "body_metrics": {
+      "min_age": 10,
+      "max_age": 120,
+      "min_height": 100,
+      "max_height": 250,
+      "min_weight": 20,
+      "max_weight": 300,
+      "fat_percentage_min": 5,
+      "fat_percentage_max": 60
+    }
+  },
+  "notifications": {
+    "daily_reminder": {
+      "enabled": true,
+      "time": "09:00",
+      "message": "Buenos días! Registra tu peso y comidas del día"
+    },
+    "steps_milestone": {
+      "enabled": true,
+      "thresholds": [2000, 5000, 8000, 10000],
+      "message": "¡Felicidades! Alcanzaste {steps} pasos"
+    },
+    "meal_reminder": {
+      "enabled": true,
+      "times": ["13:00", "20:00"],
+      "message": "Registra tu comida"
+    },
+    "exercise_reminder": {
+      "enabled": true,
+      "time": "17:00",
+      "message": "Hora de hacer ejercicio! 💪"
+    },
+    "watch_sync": {
+      "enabled": true,
+      "interval_minutes": 5,
+      "notify_on_changes": true,
+      "notify_on_error": true,
+      "message_on_changes": "⌚ Samsung Watch actualizado: {changes}",
+      "message_on_connect": "✅ Samsung Watch 7 conectado - Sincronización automática activada",
+      "message_on_error": "⚠️ Error al sincronizar con Samsung Watch"
+    }
+  },
+  "storage": {
+    "type": "localStorage",
+    "backup_interval_minutes": 10,
+    "auto_cleanup_days": 180,
+    "max_history_months": 12,
+    "compression": false
+  },
+  "analytics": {
+    "enabled": false,
+    "tracking": "none",
+    "privacy_first": true
+  },
+  "security": {
+    "encryption": "none",
+    "local_only": true,
+    "require_password": false,
+    "session_timeout_minutes": 0,
+    "data_deletion_after_days": null
+  }
+}
