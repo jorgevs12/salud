@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#2196F3">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Health">
+    <link rel="manifest" href="manifest.json">
+    <title>Health - Instalador</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .subtitle {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+        .status {
+            background: #111111;
+            border: 2px solid #333333;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+            font-family: monospace;
+            font-size: 0.85rem;
+        }
+        .status-item {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .status-icon {
+            font-size: 1.2rem;
+            min-width: 24px;
+        }
+        .btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        .btn:hover { background: #1976D2; transform: translateY(-2px); }
+        .btn:active { transform: translateY(0); }
+        .btn-secondary {
+            background: #333333;
+            color: #ffffff;
+        }
+        .btn-secondary:hover { background: #444444; }
+        .instructions {
+            text-align: left;
+            background: #111111;
+            border: 1px solid #333333;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .instructions h3 {
+            margin-bottom: 12px;
+            color: #2196F3;
+        }
+        .instructions ol {
+            margin-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 8px;
+        }
+        .hidden { display: none; }
+        .loading { 
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #333333;
+            border-top: 3px solid #2196F3;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">❤️</div>
+        <h1>Health</h1>
+        <p class="subtitle">App de Salud Integral - Offline Ready</p>
+
+        <div class="status">
+            <div class="status-item">
+                <span class="status-icon" id="sw-icon">⏳</span>
+                <span id="sw-text">Verificando Service Worker...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-icon" id="cache-icon">⏳</span>
+                <span id="cache-text">Verificando caché...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-icon" id="manifest-icon">⏳</span>
+                <span id="manifest-text">Verificando manifest...</span>
+            </div>
+        </div>
+
+        <button class="btn" id="install-btn" onclick="redirectToApp()">
+            Abrir Health
+        </button>
+        <button class="btn btn-secondary" onclick="installApp()">
+            📱 Instalar en Pantalla
+        </button>
+
+        <div class="instructions">
+            <h3>📱 Para Android:</h3>
+            <ol>
+                <li>Toca "Instalar en Pantalla"</li>
+                <li>Confirma la instalación</li>
+                <li>¡La app estará en tu pantalla!</li>
+                <li>Funciona completamente sin internet</li>
+            </ol>
+        </div>
+
+        <div class="instructions">
+            <h3>💾 Lo que se instala:</h3>
+            <ul style="margin-left: 20px; list-style: none;">
+                <li>✅ App completa offline</li>
+                <li>✅ Sin dependencias externas</li>
+                <li>✅ Datos persistentes (IndexedDB)</li>
+                <li>✅ Sincronización automática</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Registrar Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js', { scope: './' })
+                .then(reg => {
+                    console.log('✅ SW registrado');
+                    updateStatus('sw-icon', '✅', 'Service Worker listo');
+                })
+                .catch(err => {
+                    console.error('❌ Error SW:', err);
+                    updateStatus('sw-icon', '❌', 'Error en Service Worker');
+                });
+        }
+
+        // Verificar manifest
+        fetch('manifest.json')
+            .then(r => r.json())
+            .then(m => {
+                console.log('✅ Manifest cargado');
+                updateStatus('manifest-icon', '✅', 'Manifest válido');
+            })
+            .catch(e => {
+                console.error('❌ Error manifest:', e);
+                updateStatus('manifest-icon', '❌', 'Error en manifest');
+            });
+
+        // Verificar caché
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                if (names.length > 0) {
+                    updateStatus('cache-icon', '✅', 'Caché disponible');
+                } else {
+                    updateStatus('cache-icon', '⚠️', 'Sin caché (se creará al abrir)');
+                }
+            });
+        }
+
+        function updateStatus(icon, symbol, text) {
+            document.getElementById(icon).textContent = symbol;
+            document.getElementById(icon).parentElement.querySelector('span:last-child').textContent = text;
+        }
+
+        // Instalar como app
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault();
+            deferredPrompt = e;
+            console.log('✅ PWA lista para instalar');
+        });
+
+        function installApp() {
+            if (!deferredPrompt) {
+                alert('Esta app ya está instalada o tu navegador no soporta PWA');
+                return;
+            }
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(choice => {
+                if (choice.outcome === 'accepted') {
+                    console.log('✅ App instalada');
+                    alert('✅ App instalada exitosamente');
+                }
+                deferredPrompt = null;
+            });
+        }
+
+        // Redirigir a la app
+        function redirectToApp() {
+            window.location.href = 'index.html';
+        }
+
+        console.log('🚀 Health Installer Listo');
+    </script>
+</body>
+</html>
