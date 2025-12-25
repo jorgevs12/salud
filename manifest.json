@@ -1,13 +1,13 @@
 {
-  "name": "Health",
-  "short_name": "Health",
+  "name": "Salud Pro",
+  "short_name": "SaludPro",
   "description": "App de salud integral con sincronización de dispositivos y gestión de datos",
   "start_url": "/index.html",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#000000",
+  "theme_color": "#2196F3",
   "categories": ["health", "fitness"],
   "screenshots": [
     {
@@ -36,7 +36,7 @@
       "name": "Registrar Pasos",
       "short_name": "Pasos",
       "description": "Añade rápidamente tus pasos del día",
-      "url": "/health-app.html?tab=tracking",
+      "url": "/index.html?tab=tracking",
       "icons": [
         {
           "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><text x='48' y='70' font-size='60' text-anchor='middle'>👣</text></svg>",
@@ -48,7 +48,7 @@
       "name": "Registrar Comida",
       "short_name": "Comida",
       "description": "Registra lo que comiste",
-      "url": "/health-app.html?tab=tracking",
+      "url": "/index.html?tab=comidas",
       "icons": [
         {
           "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><text x='48' y='70' font-size='60' text-anchor='middle'>🍽️</text></svg>",
@@ -57,20 +57,20 @@
       ]
     },
     {
-      "name": "Ver Historial",
-      "short_name": "Historial",
-      "description": "Accede a tu historial completo",
-      "url": "/health-app.html?tab=history",
+      "name": "Ver Entrenamientos",
+      "short_name": "Entrenamientos",
+      "description": "Accede a tu historial de entrenamientos",
+      "url": "/index.html?tab=entrenos",
       "icons": [
         {
-          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><text x='48' y='70' font-size='60' text-anchor='middle'>📋</text></svg>",
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><text x='48' y='70' font-size='60' text-anchor='middle'>�</text></svg>",
           "sizes": "96x96"
         }
       ]
     }
   ],
   "share_target": {
-    "action": "/health-app.html",
+    "action": "/index.html",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {

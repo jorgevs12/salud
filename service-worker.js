@@ -1,13 +1,16 @@
 // ========================================
-// SERVICE WORKER - SOPORTE OFFLINE
+// SERVICE WORKER - SOPORTE OFFLINE Y PWA
 // ========================================
 
-const CACHE_NAME = 'health-app';
+const CACHE_NAME = 'health-app-v1';
 const urlsToCache = [
-  '/health-app.html',
-  '/health-app.js',
+  '/',
+  '/index.html',
   '/manifest.json',
-  '/service-worker-register.js'
+  '/comidas.html',
+  '/entrenos.html',
+  '/ajustes.html',
+  '/inicio.html'
 ];
 
 // INSTALL - Cachear archivos
@@ -76,7 +79,7 @@ self.addEventListener('fetch', event => {
 
             // Página offline
             if (request.destination === 'document') {
-              return caches.match('/health-app.html');
+              return caches.match('/index.html');
             }
           });
       })
@@ -156,7 +159,7 @@ self.addEventListener('notificationclick', event => {
         }
       }
       if (clients.openWindow) {
-        return clients.openWindow('/health-app.html');
+        return clients.openWindow('/index.html');
       }
     })
   );

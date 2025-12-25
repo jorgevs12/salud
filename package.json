@@ -1,0 +1,27 @@
+{
+  "name": "salud-pro",
+  "version": "1.0.0",
+  "description": "App de salud integral con sincronización de dispositivos y gestión de datos",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "serve": "npx http-server"
+  },
+  "keywords": [
+    "salud",
+    "fitness",
+    "pwa",
+    "progressive-web-app",
+    "android"
+  ],
+  "author": "Tu Nombre",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "compression": "^1.7.4"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

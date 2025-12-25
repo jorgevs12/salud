@@ -1,8 +1,20 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#2196F3">
+    <meta name="description" content="App de salud integral con sincronización de dispositivos y gestión de datos">
+    <meta name="keywords" content="salud, fitness, ejercicio, nutrición">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SaludPro">
+    <meta name="application-name" content="SaludPro">
+    <meta name="msapplication-TileColor" content="#2196F3">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232196F3' width='192' height='192'/><text x='96' y='120' font-size='100' text-anchor='middle' fill='white'>❤️</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%232196F3' width='180' height='180'/><text x='90' y='110' font-size='90' text-anchor='middle' fill='white'>❤️</text></svg>">
     <title>Salud Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -274,7 +286,7 @@
                 <input
                     type="text"
                     id="food-search"
-                    placeholder="Buscar por nombre o código de barras"
+                    placeholder="Buscar por nombre (ej: Hummus Mercadona) o código de barras (ej: 3017620422003)"
                     autocomplete="off"
                     autofocus
                     style="width: 100%; padding: 16px 50px 16px 48px; font-size: 17px; background: #222222; color: white; border: 2px solid white; border-radius: 12px;"
@@ -1108,6 +1120,20 @@ function addMeal(product) {
             renderEntreno();
         }
 
+        // ========================================
+        // REGISTRAR SERVICE WORKER - PWA
+        // ========================================
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('✅ Service Worker registrado:', registration);
+                    })
+                    .catch(error => {
+                        console.warn('❌ Error al registrar Service Worker:', error);
+                    });
+            });
+        }
 
     </script>
 </body>
