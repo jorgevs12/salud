@@ -1,4 +1,4 @@
-# 📱 Instalación de Salud Pro en Android
+# 📱 Instalación de Health en Android
 
 ## ✅ Requisitos
 - Android 5.0 o superior

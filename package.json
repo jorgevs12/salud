@@ -1,5 +1,5 @@
 {
-  "name": "salud-pro",
+  "name": "health-app",
   "version": "1.0.0",
   "description": "App de salud integral con sincronización de dispositivos y gestión de datos",
   "main": "server.js",
@@ -9,7 +9,7 @@
     "serve": "npx http-server"
   },
   "keywords": [
-    "salud",
+    "health",
     "fitness",
     "pwa",
     "progressive-web-app",

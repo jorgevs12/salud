@@ -1,6 +1,6 @@
 {
-  "name": "Salud Pro",
-  "short_name": "SaludPro",
+  "name": "Health",
+  "short_name": "Health",
   "description": "App de salud integral con sincronización de dispositivos y gestión de datos",
   "start_url": "/index.html",
   "scope": "/",
