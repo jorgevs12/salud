@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nutrición - Salud Pro</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --card-bg: #111111;
+            --text-main: #ffffff;
+            --text-secondary: #aaaaaa;
+            --border: #333333;
+            --progress-bg: #222222;
+            --accent: #ffffff;
+            --danger: #ff4444;
+            --success: #44ff88;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 16px;
+            line-height: 1.5;
+            max-width: 800px;
+            margin: 0 auto;
+            min-height: 100vh;
+            padding-bottom: 90px;
+        }
+        .card {
+            border-radius: 16px;
+            border: 2px solid var(--border);
+            padding: 20px;
+            margin-bottom: 24px;
+            background: var(--card-bg);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+        }
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 8px;
+            color: var(--accent);
+        }
+        /* Resumen rápido */
+        .quick-summary {
+            border: 3px solid var(--accent);
+            background: #1a1a1a;
+            padding: 18px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .quick-summary h2 {
+            font-size: 1.2rem;
+            font-weight: 900;
+            margin: 0 0 16px 0;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--accent);
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            font-size: 1rem;
+        }
+        .summary-item {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #222222;
+        }
+        .summary-item strong {
+            display: block;
+            font-size: 1.4rem;
+            font-weight: 900;
+            margin-bottom: 6px;
+            color: var(--accent);
+        }
+        .progress-text {
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+        /* Buscador */
+        .search-area { display: flex; flex-direction: column; gap: 12px; }
+        .input-group { display: flex; gap: 10px; }
+        input {
+            border: 2px solid var(--accent);
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 17px;
+            outline: none;
+            width: 100%;
+            font-weight: 600;
+            background: #222222;
+            color: var(--text-main);
+        }
+        #food-weight { width: 140px; text-align: center; }
+        button {
+            background: var(--accent);
+            color: #000000;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        /* Diario */
+        .log-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+        .btn-delete {
+            background: var(--danger);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        /* Nutrientes */
+        .nutrient-row { margin-bottom: 20px; }
+        .row-info { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; }
+        .row-label { font-weight: 700; font-size: 1rem; color: var(--text-main); }
+        .row-oms { font-size: 0.75rem; color: var(--text-secondary); display: block; margin-top: 4px; }
+        .row-stats { font-weight: 800; font-size: 1rem; color: var(--accent); }
+        .row-stats.danger { color: var(--danger); }
+        .progress-bar { height: 10px; background: var(--progress-bg); border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; transition: width 0.6s ease; background: var(--accent); }
+        .progress-fill.danger { background: var(--danger); }
+       #results-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #222222;
+    border: 3px solid var(--accent);
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+    margin-top: 4px;
+}
+
+.result-item {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.result-item:hover {
+    background: #333333;
+}
+
+.result-item:last-child {
+    border-bottom: none;
+}
+        .weekly-remaining {
+            border: 3px solid var(--accent);
+            background: #1a1a1a;
+            padding: 18px;
+            border-radius: 16px;
+            text-align: center;
+        }
+        .weekly-remaining h2 {
+            font-size: 1.2rem;
+            font-weight: 900;
+            margin: 0 0 16px 0;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--accent);
+        }
+        .remaining-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+        .remaining-item {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #222222;
+        }
+        .remaining-item strong {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: 900;
+            margin-bottom: 4px;
+            color: var(--accent);
+        }
+        small { color: var(--text-secondary); }
+        /* Barra de navegación */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border-top: 2px solid var(--border);
+            display: flex;
+            height: 70px;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.5);
+        }
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-decoration: none;
+            gap: 4px;
+        }
+        .nav-item.active {
+            color: var(--accent);
+            font-weight: 800;
+        }
+        .nav-item span {
+            font-size: 1.6rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- comidas -->
+    <div class="card quick-summary">
+        <h2>Resumen Hoy</h2>
+        <div class="summary-grid" id="quick-summary"></div>
+    </div>
+
+    <!-- Registrar Alimento -->
+<div class="card">
+    <div class="card-title">🔍 Registrar Alimento</div>
+    
+    <div class="search-area">
+        <div style="position: relative;">
+            <!-- Campo principal: nombre del alimento o código de barras -->
+            <input 
+                type="text" 
+                id="food-search" 
+                placeholder="Buscar por nombre (ej: Hummus Mercadona) o código de barras (ej: 3017620422003)" 
+                autocomplete="off"
+                autofocus
+            />
+            
+            <!-- Grupo para peso + botón -->
+            <div class="input-group">
+                <input 
+                    type="number" 
+                    id="food-weight" 
+                    placeholder="Gramos" 
+                    value="100" 
+                    min="1" 
+                    step="1"
+                />
+                <button onclick="searchAPI()">BUSCAR</button>
+            </div>
+            
+            <!-- Icono opcional de código de barras (puedes usar Font Awesome o similar) -->
+            <div style="position: absolute; right: 12px; top: 12px; pointer-events: none; color: #888; font-size: 1.2em;">
+                🔍
+            </div>
+            
+            <!-- Dropdown con resultados -->
+            <div id="results-dropdown" class="results-dropdown"></div>
+        </div>
+        
+        <!-- Mensaje informativo para usuarios móviles o con escáner -->
+        <small style="display: block; margin-top: 8px; color: #666; text-align: center;">
+            💡 Consejo: Escanea el código de barras del producto para agregarlo automáticamente
+        </small>
+    </div>
+</div>
+
+    <!-- Diario de Hoy -->
+    <div class="card">
+        <div class="card-title">📝 Diario de Hoy</div>
+        <div id="log-container"></div>
+    </div>
+
+    <!-- Macronutrientes -->
+    <div class="card">
+        <div class="card-title">📊 Macronutrientes Hoy</div>
+        <div id="macro-container"></div>
+    </div>
+
+    <!-- Micronutrientes -->
+    <div class="card">
+        <div class="card-title">🧬 Micronutrientes Hoy</div>
+        <div id="micro-container"></div>
+    </div>
+
+    <!-- Resumen semanal -->
+    <div class="card weekly-remaining">
+        <h2>Restante esta semana (según OMS)</h2>
+        <div class="remaining-grid" id="weekly-remaining"></div>
+        <small>Objetivo semanal = 7 × objetivo diario. Últimos 7 días.</small>
+    </div>
+
+
+    <script>
+        const NUTRIENTS = {
+            calories: { label: 'Calorías', target: 2000, unit: 'kcal', api: 'energy-kcal_100g', isMin: true },
+            protein: { label: 'Proteína', target: 75, unit: 'g', api: 'proteins_100g', isMin: true },
+            carbs: { label: 'Carbohidratos', target: 275, unit: 'g', api: 'carbohydrates_100g', isMin: true },
+            sugars: { label: 'Azúcares libres', target: 50, unit: 'g', api: 'sugars_100g', isMax: true },
+            fat: { label: 'Grasas totales', target: 65, unit: 'g', api: 'fat_100g', isMax: true },
+            saturated: { label: 'Gr. Saturadas', target: 20, unit: 'g', api: 'saturated-fat_100g', isMax: true },
+            fiber: { label: 'Fibra', target: 30, unit: 'g', api: 'fiber_100g', isMin: true },
+            sodium: { label: 'Sodio', target: 2000, unit: 'mg', api: 'sodium_100g', isMax: true },
+            potassium: { label: 'Potasio', target: 3500, unit: 'mg', api: 'potassium_100g', isMin: true },
+            calcium: { label: 'Calcio', target: 1000, unit: 'mg', api: 'calcium_100g', isMin: true },
+            magnesium: { label: 'Magnesio', target: 375, unit: 'mg', api: 'magnesium_100g', isMin: true },
+            iron: { label: 'Hierro', target: 14, unit: 'mg', api: 'iron_100g', isMin: true },
+            zinc: { label: 'Zinc', target: 10, unit: 'mg', api: 'zinc_100g', isMin: true },
+            vitA: { label: 'Vitamina A', target: 800, unit: 'µg', api: 'vitamin-a_100g', isMin: true },
+            vitC: { label: 'Vitamina C', target: 90, unit: 'mg', api: 'vitamin-c_100g', isMin: true },
+            vitD: { label: 'Vitamina D', target: 15, unit: 'µg', api: 'vitamin-d_100g', isMin: true },
+            vitE: { label: 'Vitamina E', target: 12, unit: 'mg', api: 'vitamin-e_100g', isMin: true },
+            vitB6: { label: 'Vitamina B6', target: 1.5, unit: 'mg', api: 'vitamin-b6_100g', isMin: true },
+            vitB12: { label: 'Vitamina B12', target: 2.4, unit: 'µg', api: 'vitamin-b12_100g', isMin: true }
+        };
+
+        let db;
+        let foodLog = [];
+        let weekMeals = [];
+        let userConfig = { dailyCalories: 2000 };
+
+        const request = indexedDB.open("SaludDB", 7);
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains("meals")) db.createObjectStore("meals", { keyPath: "id" });
+            if (!db.objectStoreNames.contains("config")) db.createObjectStore("config", { keyPath: "id" });
+        };
+        request.onsuccess = (e) => {
+            db = e.target.result;
+            loadConfigAndData();
+        };
+
+        function loadConfigAndData() {
+            const txConfig = db.transaction("config", "readonly");
+            const storeConfig = txConfig.objectStore("config");
+            storeConfig.get("userConfig").onsuccess = (ev) => {
+                if (ev.target.result && ev.target.result.dailyCalories) {
+                    userConfig.dailyCalories = ev.target.result.dailyCalories;
+                }
+                cleanOldData();
+                loadWeekMeals();
+            };
+            txConfig.oncomplete = () => {
+                cleanOldData();
+                loadWeekMeals();
+            };
+        }
+
+        async function searchAPI() {
+            const query = document.getElementById('food-search').value.trim();
+            const dropdown = document.getElementById('results-dropdown');
+            if (!query) return;
+            dropdown.innerHTML = "<div class='result-item'>Buscando...</div>";
+            dropdown.style.display = "block";
+            try {
+                const resp = await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=10`);
+                const data = await resp.json();
+                dropdown.innerHTML = "";
+                if (data.products.length === 0) {
+                    dropdown.innerHTML = "<div class='result-item'>Sin resultados</div>";
+                    return;
+                }
+                data.products.forEach(p => {
+                    if (!p.product_name) return;
+                    const div = document.createElement('div');
+                    div.className = 'result-item';
+                    div.innerHTML = `<strong>${p.product_name}</strong><br><small>${p.brands || 'Sin marca'}</small>`;
+                    div.onclick = () => {
+                        addMeal(p);
+                        dropdown.style.display = "none";
+                    };
+                    dropdown.appendChild(div);
+                });
+            } catch (e) {
+                dropdown.innerHTML = "<div class='result-item'>Error de conexión</div>";
+            }
+        }
+
+        function addMeal(product) {
+            const weight = parseFloat(document.getElementById('food-weight').value) || 100;
+            const entry = {
+                id: Date.now().toString(),
+                timestamp: Date.now(),
+                date: new Date().toISOString().split('T')[0],
+                name: product.product_name || 'Alimento',
+                weight: weight,
+                nutriments: product.nutriments || {}
+            };
+            const tx = db.transaction("meals", "readwrite");
+            tx.objectStore("meals").add(entry);
+            tx.oncomplete = () => {
+                document.getElementById('food-search').value = "";
+                document.getElementById('food-weight').value = "100";
+                loadWeekMeals();
+            };
+        }
+
+        function loadWeekMeals() {
+            const tx = db.transaction("meals", "readonly");
+            const store = tx.objectStore("meals");
+            store.getAll().onsuccess = (e) => {
+                const allMeals = e.target.result;
+                const today = new Date().toISOString().split('T')[0];
+                foodLog = allMeals.filter(m => m.date === today);
+                const start = new Date();
+                start.setDate(start.getDate() - 6);
+                start.setHours(0,0,0,0);
+                weekMeals = allMeals.filter(m => new Date(m.date) >= start);
+                renderAll();
+            };
+        }
+
+        function deleteMeal(id) {
+            const tx = db.transaction("meals", "readwrite");
+            tx.objectStore("meals").delete(id);
+            tx.oncomplete = () => loadWeekMeals();
+        }
+
+        function cleanOldData() {
+            const tx = db.transaction("meals", "readwrite");
+            const oneMonthAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+            const store = tx.objectStore("meals");
+            store.openCursor().onsuccess = (e) => {
+                const cursor = e.target.result;
+                if (cursor) {
+                    if (cursor.value.timestamp < oneMonthAgo) cursor.delete();
+                    cursor.continue();
+                }
+            };
+        }
+
+        function calculateTotals(meals) {
+            const totals = {};
+            Object.keys(NUTRIENTS).forEach(k => totals[k] = 0);
+            meals.forEach(m => {
+                const factor = m.weight / 100;
+                Object.keys(NUTRIENTS).forEach(key => {
+                    const n = NUTRIENTS[key];
+                    let val = m.nutriments[n.api] || 0;
+                    if (n.unit === 'mg' && (n.api.includes('sodium') || n.api.includes('potassium') || n.api.includes('calcium') || n.api.includes('magnesium'))) val *= 1000;
+                    if (n.unit === 'µg') val *= 1000000;
+                    totals[key] += val * factor;
+                });
+            });
+            return totals;
+        }
+
+        function renderQuickSummary() {
+            const cont = document.getElementById('quick-summary');
+            const todayTotals = calculateTotals(foodLog);
+            const caloriesConsumed = Math.round(todayTotals.calories);
+            const goalReached = caloriesConsumed <= userConfig.dailyCalories;
+
+            cont.innerHTML = `
+                <div class="summary-item ${!goalReached ? 'danger' : ''}">
+                    <strong>${caloriesConsumed}</strong>
+                    Calorías
+                    <div class="progress-text" style="color: ${goalReached ? 'var(--success)' : 'var(--danger)'}">
+                        ${goalReached ? '✓' : ''} Objetivo: ${userConfig.dailyCalories} kcal
+                    </div>
+                </div>
+                <div class="summary-item ${todayTotals.protein < 75 * 0.9 ? 'danger' : ''}">
+                    <strong>${todayTotals.protein.toFixed(0)}g</strong>
+                    Proteína (meta 75g)
+                </div>`;
+        }
+
+        function renderWeeklyRemaining() {
+            const cont = document.getElementById('weekly-remaining');
+            const weekTotals = calculateTotals(weekMeals);
+            const weeklyTarget = {};
+            Object.keys(NUTRIENTS).forEach(k => weeklyTarget[k] = NUTRIENTS[k].target * 7);
+            cont.innerHTML = "";
+            const priorityNutrients = ['calories', 'protein', 'fiber', 'sodium', 'potassium', 'iron', 'calcium', 'vitC'];
+            priorityNutrients.forEach(key => {
+                const n = NUTRIENTS[key];
+                const consumed = weekTotals[key];
+                const remaining = weeklyTarget[key] - consumed;
+                const isDeficit = !n.isMax && remaining > 0 && consumed < n.target * 7 * 0.8;
+                const remainingText = n.isMax
+                    ? (remaining > 0 ? `+${remaining.toFixed(0)}${n.unit}` : 'Exceso')
+                    : (remaining > 0 ? remaining.toFixed(0) + n.unit : 'Cubierto');
+                cont.innerHTML += `
+                    <div class="remaining-item ${isDeficit ? 'danger' : ''}">
+                        <strong>${remainingText}</strong>
+                        ${n.label}
+                    </div>`;
+            });
+        }
+
+        function renderDailyLog() {
+            const logCont = document.getElementById('log-container');
+            logCont.innerHTML = foodLog.length ? "" : "<small>No hay registros hoy</small>";
+            foodLog.forEach(m => {
+                logCont.innerHTML += `
+                    <div class="log-item">
+                        <span>${m.name.substring(0,35)}... (${m.weight}g)</span>
+                        <button class="btn-delete" onclick="deleteMeal('${m.id}')">BORRAR</button>
+                    </div>`;
+            });
+        }
+
+        function renderNutrients(containerId, keys) {
+            const cont = document.getElementById(containerId);
+            cont.innerHTML = "";
+            const todayTotals = calculateTotals(foodLog);
+            keys.forEach(key => {
+                let target = NUTRIENTS[key].target;
+                if (key === 'calories') target = userConfig.dailyCalories; // Usar objetivo personalizado
+                const n = { ...NUTRIENTS[key], target };
+                const current = todayTotals[key];
+                const percent = n.isMax ? Math.min((current / n.target) * 100, 120) : Math.min((current / n.target) * 100, 100);
+                const isDeficit = !n.isMax && current < n.target * 0.9;
+                const isExcess = n.isMax && current > n.target;
+                cont.innerHTML += `
+                    <div class="nutrient-row">
+                        <div class="row-info">
+                            <div>
+                                <span class="row-label">${n.label}</span>
+                                <span class="row-oms">${n.isMax ? 'Máx' : 'Meta'} ${n.target}${n.unit}/día</span>
+                            </div>
+                            <span class="row-stats ${isDeficit || isExcess ? 'danger' : ''}">
+                                ${current.toFixed(1)} ${n.unit}
+                            </span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill ${isDeficit || isExcess ? 'danger' : ''}" style="width:${percent}%"></div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderAll() {
+            renderQuickSummary();
+            renderDailyLog();
+            renderNutrients('macro-container', ['calories', 'protein', 'carbs', 'fat', 'sugars', 'saturated', 'fiber']);
+            renderNutrients('micro-container', ['sodium', 'potassium', 'calcium', 'magnesium', 'iron', 'zinc', 'vitA', 'vitC', 'vitD', 'vitE', 'vitB6', 'vitB12']);
+            renderWeeklyRemaining();
+        }
+    </script>
+</body>
+</html>

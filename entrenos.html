@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Entrenamiento - Salud Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #000000;
+            --card-bg: #111111;
+            --text-main: #ffffff;
+            --text-secondary: #aaaaaa;
+            --border: #333333;
+            --accent: #ffffff;
+            --danger: #ff4444;
+            --success: #44ff88;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 12px;
+            line-height: 1.5;
+            min-height: 100vh;
+            padding-bottom: 90px; /* Espacio para barra inferior */
+        }
+        .card {
+            border-radius: 16px;
+            border: 2px solid var(--border);
+            padding: 20px;
+            margin-bottom: 20px;
+            background: var(--card-bg);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+        }
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 8px;
+            color: var(--accent);
+        }
+        /* Resumen rápido */
+        .quick-summary {
+            border: 3px solid var(--accent);
+            background: #1a1a1a;
+            padding: 18px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .quick-summary h2 {
+            font-size: 1.2rem;
+            font-weight: 900;
+            margin: 0 0 16px 0;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--accent);
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            font-size: 0.95rem;
+        }
+        .summary-item {
+            padding: 14px 10px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #222222;
+        }
+        .summary-item strong {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 4px;
+            color: var(--accent);
+        }
+        .progress-text {
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+        /* Inputs */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .input-full {
+            grid-column: 1 / -1;
+        }
+        input, select {
+            border: 2px solid var(--accent);
+            padding: 18px 16px;
+            border-radius: 12px;
+            font-size: 17px;
+            outline: none;
+            width: 100%;
+            font-weight: 600;
+            background: #222222;
+            color: var(--text-main);
+            min-height: 56px;
+        }
+        button {
+            background: var(--accent);
+            color: #000000;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 17px;
+            cursor: pointer;
+            min-height: 56px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        /* Diario */
+        .log-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 1rem;
+        }
+        .log-item span {
+            flex: 1;
+            padding-right: 12px;
+            word-break: break-word;
+        }
+        .log-item small {
+            color: var(--text-secondary);
+        }
+        .btn-delete {
+            background: var(--danger);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            min-width: 80px;
+        }
+        /* Filtros y gráficas */
+        .filter-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            position: relative;
+            height: 280px;
+            width: 100%;
+            margin-top: 10px;
+        }
+        /* Resumen semanal */
+        .weekly-remaining {
+            border: 3px solid var(--accent);
+            background: #1a1a1a;
+            padding: 18px;
+            border-radius: 16px;
+            text-align: center;
+        }
+        .weekly-remaining h2 {
+            font-size: 1.2rem;
+            font-weight: 900;
+            margin: 0 0 16px 0;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--accent);
+        }
+        .remaining-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+        }
+        .remaining-item {
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #222222;
+        }
+        .remaining-item strong {
+            display: block;
+            font-size: 1.3rem;
+            font-weight: 900;
+            margin-bottom: 4px;
+            color: var(--accent);
+        }
+        small {
+            color: var(--text-secondary);
+        }
+        /* Barra de navegación */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border-top: 2px solid var(--border);
+            display: flex;
+            height: 70px;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.5);
+        }
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-decoration: none;
+            gap: 4px;
+        }
+        .nav-item.active {
+            color: var(--accent);
+            font-weight: 800;
+        }
+        .nav-item span {
+            font-size: 1.6rem;
+        }
+        @media (max-width: 480px) {
+            .input-row, .filter-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Entrenos-->
+    <div class="card quick-summary">
+        <h2>Resumen Hoy</h2>
+        <div class="summary-grid" id="quick-summary"></div>
+    </div>
+
+    <!-- Registrar Entrenamiento -->
+    <div class="card">
+        <div class="card-title">🏋️ Registrar Entrenamiento</div>
+        <div class="input-group">
+            <select id="workout-type">
+                <option value="cardio">Cardio</option>
+                <option value="fuerza">Fuerza</option>
+                <option value="flexibilidad">Flexibilidad</option>
+                <option value="hiit">HIIT</option>
+                <option value="otros">Otros</option>
+            </select>
+            <div class="input-row">
+                <input type="number" id="workout-duration" placeholder="Duración (min)" value="30">
+                <input type="number" id="workout-calories" placeholder="Calorías (opc.)">
+            </div>
+            <input type="number" id="steps-input" placeholder="Pasos del entrenamiento (opc.)" class="input-full">
+            <button onclick="addWorkout()">AÑADIR ENTRENAMIENTO</button>
+        </div>
+    </div>
+
+    <!-- Registrar Métricas Corporales -->
+    <div class="card">
+        <div class="card-title">📏 Registrar Métricas</div>
+        <div class="input-group">
+            <div class="input-row">
+                <input type="number" step="0.1" id="weight-input" placeholder="Peso (kg)">
+                <input type="number" step="0.1" id="fat-input" placeholder="% Grasa">
+            </div>
+            <div class="input-row">
+                <input type="number" step="0.1" id="muscle-input" placeholder="% Músculo">
+                <input type="number" step="0.1" id="water-input" placeholder="% Agua">
+            </div>
+            <button onclick="addMetrics()">GUARDAR MÉTRICAS</button>
+        </div>
+    </div>
+
+    <!-- Diario de Hoy -->
+    <div class="card">
+        <div class="card-title">📝 Entrenamientos de Hoy</div>
+        <div id="log-container"></div>
+    </div>
+
+    <!-- Gráficas -->
+    <div class="card">
+        <div class="card-title">📊 Evolución</div>
+        <div class="filter-group">
+            <select id="metric-filter">
+                <option value="weight">Peso (kg)</option>
+                <option value="fat">% Grasa</option>
+                <option value="muscle">% Músculo</option>
+                <option value="water">% Agua</option>
+            </select>
+            <select id="time-filter">
+                <option value="week">Última semana</option>
+                <option value="month">Último mes</option>
+                <option value="year">Último año</option>
+            </select>
+            <button onclick="updateCharts()">VER</button>
+        </div>
+        <div class="chart-container">
+            <canvas id="metrics-chart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="workouts-chart"></canvas>
+        </div>
+    </div>
+
+    <!-- Resumen semanal -->
+    <div class="card weekly-remaining">
+        <h2>Resumen Semana</h2>
+        <div class="remaining-grid" id="weekly-remaining"></div>
+        <small>Últimos 7 días</small>
+    </div>
+
+
+    <script>
+        const WORKOUT_TYPES = {
+            cardio: { label: 'Cardio', calPerMin: 10 },
+            fuerza: { label: 'Fuerza', calPerMin: 8 },
+            flexibilidad: { label: 'Flexibilidad', calPerMin: 5 },
+            hiit: { label: 'HIIT', calPerMin: 12 },
+            otros: { label: 'Otros', calPerMin: 7 }
+        };
+
+        let db;
+        let workouts = [];
+        let allWorkouts = [];
+        let allMetrics = [];
+        let metricsChart;
+        let workoutsChart;
+        let userConfig = { stepsGoal: 10000, trainingGoal: 30 };
+
+        const request = indexedDB.open("SaludDB", 7);
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains("workouts")) db.createObjectStore("workouts", { keyPath: "id" });
+            if (!db.objectStoreNames.contains("metrics")) db.createObjectStore("metrics", { keyPath: "id" });
+            if (!db.objectStoreNames.contains("config")) db.createObjectStore("config", { keyPath: "id" });
+        };
+
+        request.onsuccess = (e) => {
+            db = e.target.result;
+            loadConfigAndData();
+        };
+
+        function loadConfigAndData() {
+            const txConfig = db.transaction("config", "readonly");
+            const storeConfig = txConfig.objectStore("config");
+            storeConfig.get("userConfig").onsuccess = (ev) => {
+                if (ev.target.result) {
+                    userConfig = { ...userConfig, ...ev.target.result };
+                }
+                loadData();
+            };
+            txConfig.oncomplete = loadData;
+        }
+
+        function loadData() {
+            const today = new Date().toISOString().split('T')[0];
+
+            const txWork = db.transaction("workouts", "readonly");
+            txWork.objectStore("workouts").getAll().onsuccess = (e) => {
+                allWorkouts = e.target.result.sort((a,b) => a.timestamp - b.timestamp);
+                workouts = allWorkouts.filter(w => w.date === today);
+            };
+
+            const txMetrics = db.transaction("metrics", "readonly");
+            txMetrics.objectStore("metrics").getAll().onsuccess = (e) => {
+                allMetrics = e.target.result.sort((a,b) => a.timestamp - b.timestamp);
+                renderAll();
+                updateCharts();
+            };
+        }
+
+        function addWorkout() {
+            const type = document.getElementById('workout-type').value;
+            const duration = parseFloat(document.getElementById('workout-duration').value) || 0;
+            let calories = parseFloat(document.getElementById('workout-calories').value) || 0;
+            const steps = parseFloat(document.getElementById('steps-input').value) || 0;
+
+            if (calories === 0 && duration > 0) {
+                calories = duration * WORKOUT_TYPES[type].calPerMin;
+                if (steps > 0) calories += steps * 0.04;
+            }
+
+            const entry = {
+                id: Date.now().toString(),
+                timestamp: Date.now(),
+                date: new Date().toISOString().split('T')[0],
+                type, duration, calories, steps
+            };
+
+            const tx = db.transaction("workouts", "readwrite");
+            tx.objectStore("workouts").add(entry);
+            tx.oncomplete = () => {
+                document.getElementById('workout-duration').value = "";
+                document.getElementById('workout-calories').value = "";
+                document.getElementById('steps-input').value = "";
+                loadData();
+            };
+        }
+
+        function addMetrics() {
+            const weight = parseFloat(document.getElementById('weight-input').value) || 0;
+            const fat = parseFloat(document.getElementById('fat-input').value) || 0;
+            const muscle = parseFloat(document.getElementById('muscle-input').value) || 0;
+            const water = parseFloat(document.getElementById('water-input').value) || 0;
+
+            if (weight + fat + muscle + water === 0) return;
+
+            const entry = {
+                id: Date.now().toString(),
+                timestamp: Date.now(),
+                date: new Date().toISOString().split('T')[0],
+                weight, fat, muscle, water
+            };
+
+            const tx = db.transaction("metrics", "readwrite");
+            tx.objectStore("metrics").add(entry);
+            tx.oncomplete = () => {
+                document.getElementById('weight-input').value = "";
+                document.getElementById('fat-input').value = "";
+                document.getElementById('muscle-input').value = "";
+                document.getElementById('water-input').value = "";
+                loadData();
+            };
+        }
+
+        function deleteWorkout(id) {
+            const tx = db.transaction("workouts", "readwrite");
+            tx.objectStore("workouts").delete(id);
+            tx.oncomplete = () => loadData();
+        }
+
+        function calculateTotals(arr) {
+            return arr.reduce((acc, item) => ({
+                duration: acc.duration + item.duration,
+                calories: acc.calories + item.calories,
+                steps: acc.steps + item.steps
+            }), { duration: 0, calories: 0, steps: 0 });
+        }
+
+        function renderQuickSummary() {
+            const totals = calculateTotals(workouts);
+            document.getElementById('quick-summary').innerHTML = `
+                <div class="summary-item">
+                    <strong>${totals.duration}</strong>
+                    Minutos
+                    <div class="progress-text" style="color: ${totals.duration >= userConfig.trainingGoal ? 'var(--success)' : 'var(--danger)'}">
+                        ${totals.duration >= userConfig.trainingGoal ? '✓' : ''} Objetivo: ${userConfig.trainingGoal} min
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <strong>${Math.round(totals.calories)}</strong>
+                    Calorías quemadas
+                </div>
+                <div class="summary-item">
+                    <strong>${totals.steps.toLocaleString()}</strong>
+                    Pasos
+                    <div class="progress-text" style="color: ${totals.steps >= userConfig.stepsGoal ? 'var(--success)' : 'var(--danger)'}">
+                        ${totals.steps >= userConfig.stepsGoal ? '✓' : ''} Objetivo: ${userConfig.stepsGoal.toLocaleString()}
+                    </div>
+                </div>`;
+        }
+
+        function renderWeeklyRemaining() {
+            const last7days = allWorkouts.filter(w => {
+                const d = new Date(w.date);
+                const weekAgo = new Date();
+                weekAgo.setDate(weekAgo.getDate() - 7);
+                return d >= weekAgo;
+            });
+            const totals = calculateTotals(last7days);
+            const daysCount = [...new Set(last7days.map(w => w.date))].length || 1;
+            const avgMin = Math.round(totals.duration / daysCount);
+            const avgSteps = Math.round(totals.steps / daysCount);
+
+            document.getElementById('weekly-remaining').innerHTML = `
+                <div class="remaining-item">
+                    <strong>${avgMin}</strong>
+                    Min/día promedio
+                    <div class="progress-text" style="color: ${avgMin >= userConfig.trainingGoal ? 'var(--success)' : 'var(--danger)'}">
+                        vs. ${userConfig.trainingGoal} min
+                    </div>
+                </div>
+                <div class="remaining-item">
+                    <strong>${Math.round(totals.calories)}</strong>
+                    Kcal totales
+                </div>
+                <div class="remaining-item">
+                    <strong>${avgSteps.toLocaleString()}</strong>
+                    Pasos/día promedio
+                    <div class="progress-text" style="color: ${avgSteps >= userConfig.stepsGoal ? 'var(--success)' : 'var(--danger)'}">
+                        vs. ${userConfig.stepsGoal.toLocaleString()}
+                    </div>
+                </div>`;
+        }
+
+        function renderDailyLog() {
+            const cont = document.getElementById('log-container');
+            if (workouts.length === 0) {
+                cont.innerHTML = "<small>Sin entrenamientos hoy</small>";
+                return;
+            }
+            cont.innerHTML = "";
+            workouts.forEach(w => {
+                cont.innerHTML += `
+                    <div class="log-item">
+                        <span>${WORKOUT_TYPES[w.type].label}<br>
+                        <small>${w.duration} min • ${Math.round(w.calories)} kcal • ${w.steps} pasos</small></span>
+                        <button class="btn-delete" onclick="deleteWorkout('${w.id}')">BORRAR</button>
+                    </div>`;
+            });
+        }
+
+        function getFilteredData(timeFilter) {
+            const now = new Date();
+            let cutoff = new Date();
+            if (timeFilter === 'week') cutoff.setDate(now.getDate() - 7);
+            else if (timeFilter === 'month') cutoff.setDate(now.getDate() - 30);
+            else if (timeFilter === 'year') cutoff.setFullYear(now.getFullYear() - 1);
+
+            const filteredMetrics = allMetrics.filter(m => new Date(m.date) >= cutoff);
+            const filteredWorkouts = allWorkouts.filter(w => new Date(w.date) >= cutoff);
+            return { filteredMetrics, filteredWorkouts };
+        }
+
+        function updateCharts() {
+            const metric = document.getElementById('metric-filter').value;
+            const time = document.getElementById('time-filter').value;
+            const { filteredMetrics, filteredWorkouts } = getFilteredData(time);
+
+            // Gráfica de métricas corporales
+            const metricDates = [...new Set(filteredMetrics.map(m => m.date))].sort();
+            const metricValues = metricDates.map(d => {
+                const entry = filteredMetrics.find(m => m.date === d);
+                return entry ? (entry[metric] || null) : null;
+            }).filter(v => v !== null && v !== 0);
+
+            if (metricsChart) metricsChart.destroy();
+            metricsChart = new Chart(document.getElementById('metrics-chart'), {
+                type: 'line',
+                data: {
+                    labels: metricDates,
+                    datasets: [{
+                        label: document.getElementById('metric-filter').selectedOptions[0].text,
+                        data: metricValues,
+                        borderColor: 'white',
+                        backgroundColor: 'rgba(255,255,255,0.1)',
+                        tension: 0.2,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#aaaaaa', maxTicksLimit: 8 } },
+                        y: { ticks: { color: '#aaaaaa' }, beginAtZero: false }
+                    }
+                }
+            });
+
+            // Gráfica de calorías quemadas
+            const workoutDates = [...new Set(filteredWorkouts.map(w => w.date))].sort();
+            const caloriesPerDay = workoutDates.map(d =>
+                filteredWorkouts.filter(w => w.date === d).reduce((sum, w) => sum + w.calories, 0)
+            );
+
+            if (workoutsChart) workoutsChart.destroy();
+            workoutsChart = new Chart(document.getElementById('workouts-chart'), {
+                type: 'bar',
+                data: {
+                    labels: workoutDates,
+                    datasets: [{
+                        label: 'Calorías quemadas',
+                        data: caloriesPerDay,
+                        backgroundColor: 'white'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#aaaaaa', maxTicksLimit: 8 } },
+                        y: { ticks: { color: '#aaaaaa' }, beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function renderAll() {
+            renderQuickSummary();
+            renderDailyLog();
+            renderWeeklyRemaining();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Salud Pro</title>
+    <style>
+        :root {
+            --bg: #000000;
+            --card-bg: #111111;
+            --text-main: #ffffff;
+            --text-secondary: #aaaaaa;
+            --border: #333333;
+            --accent: #ffffff;
+            --danger: #ff4444;
+            --success: #44ff88;
+            --warning: #ffaa44;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            padding: 20px 16px 10px;
+            text-align: center;
+            border-bottom: 3px solid var(--accent);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent);
+        }
+        .main-content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            padding-bottom: 90px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+        .summary-big {
+            background: var(--card-bg);
+            border: 3px solid var(--accent);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+        }
+        .summary-big strong {
+            display: block;
+            font-size: 2.4rem;
+            font-weight: 900;
+            margin-bottom: 6px;
+            color: var(--accent);
+        }
+        .summary-big span {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .progress-text {
+            font-size: 0.9rem;
+            margin-top: 4px;
+            color: var(--text-secondary);
+        }
+        .health-grid, .daily-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 14px;
+            margin-bottom: 30px;
+        }
+        .health-item, .daily-item {
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+        }
+        .health-item strong, .daily-item strong {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+            color: var(--accent);
+        }
+        .health-item span, .daily-item span {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+        .status-good { color: var(--success); }
+        .status-warning { color: var(--warning); }
+        .status-bad { color: var(--danger); }
+        h2 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 30px 0 16px 0;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 8px;
+            color: var(--text-main);
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+        }
+        .metric-item {
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .metric-item strong {
+            display: block;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+        .metric-item span {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border-top: 2px solid var(--border);
+            display: flex;
+            height: 70px;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.5);
+        }
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-decoration: none;
+            gap: 4px;
+        }
+        .nav-item.active {
+            color: var(--accent);
+            font-weight: 800;
+        }
+        .nav-item span {
+            font-size: 1.6rem;
+        }
+        @media (max-width: 480px) {
+            .summary-big strong { font-size: 2rem; }
+            .health-item strong, .daily-item strong { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Salud Pro</h1>
+    </header>
+
+    <div class="main-content">
+        <!-- Resumen rápido de actividad hoy -->
+        <div class="summary-grid" id="today-summary"></div>
+
+        <!-- Resumen Diario (Nutrición + Ejercicio) -->
+        <h2>Resumen Diario</h2>
+        <div class="daily-grid" id="daily-summary"></div>
+
+        <!-- Estado de Salud -->
+        <h2>Estado de Salud</h2>
+        <div class="health-grid" id="health-status"></div>
+
+        <!-- Últimas métricas corporales -->
+        <h2>Últimas Métricas</h2>
+        <div class="metrics-grid" id="latest-metrics"></div>
+    </div>
+
+
+    <script>
+        let db;
+        let todayWorkouts = [];
+        let todayMeals = [];
+        let latestMetrics = null;
+        let userConfig = {
+            dailyCalories: 2000,
+            stepsGoal: 10000,
+            trainingGoal: 30,
+            height: 175,
+            age: 30,
+            gender: 'male'
+        };
+
+        const request = indexedDB.open("SaludDB", 7);
+        request.onupgradeneeded = (e) => {
+            db = e.target.result;
+            if (!db.objectStoreNames.contains("workouts")) db.createObjectStore("workouts", { keyPath: "id" });
+            if (!db.objectStoreNames.contains("metrics")) db.createObjectStore("metrics", { keyPath: "id" });
+            if (!db.objectStoreNames.contains("meals")) db.createObjectStore("meals", { keyPath: "id" });
+            if (!db.objectStoreNames.contains("config")) db.createObjectStore("config", { keyPath: "id" });
+        };
+
+        request.onsuccess = (e) => {
+            db = e.target.result;
+            loadConfigAndData();
+        };
+
+        function loadConfigAndData() {
+            // Cargar configuración
+            const txConfig = db.transaction("config", "readonly");
+            const configStore = txConfig.objectStore("config");
+            configStore.get("userConfig").onsuccess = (ev) => {
+                if (ev.target.result) {
+                    userConfig = { ...userConfig, ...ev.target.result };
+                }
+                loadData();
+            };
+            txConfig.oncomplete = () => loadData();
+        }
+
+        function loadData() {
+            const today = new Date().toISOString().split('T')[0];
+
+            // Workouts
+            const txWork = db.transaction("workouts", "readonly");
+            txWork.objectStore("workouts").getAll().onsuccess = (ev) => {
+                const allWorkouts = ev.target.result;
+                todayWorkouts = allWorkouts.filter(w => w.date === today);
+            };
+
+            // Meals
+            const txMeals = db.transaction("meals", "readonly");
+            txMeals.objectStore("meals").getAll().onsuccess = (ev) => {
+                const allMeals = ev.target.result;
+                todayMeals = allMeals.filter(m => m.date === today);
+            };
+
+            // Metrics
+            const txMetrics = db.transaction("metrics", "readonly");
+            txMetrics.objectStore("metrics").getAll().onsuccess = (ev) => {
+                const allMetrics = ev.target.result;
+                if (allMetrics.length > 0) {
+                    allMetrics.sort((a, b) => b.timestamp - a.timestamp);
+                    latestMetrics = allMetrics[0];
+                }
+                renderAll();
+            };
+        }
+
+        function calculateWorkoutTotals() {
+            return todayWorkouts.reduce((acc, w) => ({
+                minutes: acc.minutes + w.duration,
+                caloriesBurned: acc.caloriesBurned + w.calories,
+                steps: acc.steps + w.steps
+            }), { minutes: 0, caloriesBurned: 0, steps: 0 });
+        }
+
+        function calculateConsumedCalories() {
+            return todayMeals.reduce((total, meal) => {
+                const kcal = meal.nutriments?.['energy-kcal_100g'] || 0;
+                return total + (kcal * meal.weight / 100);
+            }, 0);
+        }
+
+        function calculateBMR(weight) {
+            if (userConfig.gender === 'male') {
+                return 10 * weight + 6.25 * userConfig.height - 5 * userConfig.age + 5;
+            } else {
+                return 10 * weight + 6.25 * userConfig.height - 5 * userConfig.age - 161;
+            }
+        }
+
+        function calculateIdealWeight() {
+            if (userConfig.gender === 'male') {
+                return 50 + 0.91 * (userConfig.height - 152.4);
+            } else {
+                return 45.5 + 0.91 * (userConfig.height - 152.4);
+            }
+        }
+
+        function getIMCStatus(imc) {
+            if (imc < 18.5) return { text: 'Bajo peso', color: 'status-warning' };
+            if (imc < 25) return { text: 'Normal', color: 'status-good' };
+            if (imc < 30) return { text: 'Sobrepeso', color: 'status-warning' };
+            return { text: 'Obesidad', color: 'status-bad' };
+        }
+
+        function renderAll() {
+            const workout = calculateWorkoutTotals();
+            const consumed = Math.round(calculateConsumedCalories());
+            const burned = Math.round(workout.caloriesBurned);
+            const netIntake = consumed - burned;
+            const deficit = userConfig.dailyCalories - netIntake; // positivo = déficit (bueno)
+
+            // Resumen actividad con objetivos
+            document.getElementById('today-summary').innerHTML = `
+                <div class="summary-big">
+                    <strong>${workout.steps.toLocaleString()}</strong>
+                    <span>Pasos</span>
+                    <div class="progress-text" style="color: ${workout.steps >= userConfig.stepsGoal ? 'var(--success)' : 'var(--danger)'}">
+                        ${workout.steps >= userConfig.stepsGoal ? '✓' : ''} Objetivo: ${userConfig.stepsGoal.toLocaleString()}
+                    </div>
+                </div>
+                <div class="summary-big">
+                    <strong>${workout.minutes}</strong>
+                    <span>Min entrenados</span>
+                    <div class="progress-text" style="color: ${workout.minutes >= userConfig.trainingGoal ? 'var(--success)' : 'var(--danger)'}">
+                        ${workout.minutes >= userConfig.trainingGoal ? '✓' : ''} Objetivo: ${userConfig.trainingGoal} min
+                    </div>
+                </div>
+                <div class="summary-big">
+                    <strong>${burned}</strong>
+                    <span>Kcal quemadas</span>
+                </div>
+            `;
+
+            // Resumen diario
+            document.getElementById('daily-summary').innerHTML = `
+                <div class="daily-item">
+                    <strong>${consumed}</strong>
+                    <span>Consumidas</span>
+                </div>
+                <div class="daily-item">
+                    <strong>${burned}</strong>
+                    <span>Quemadas ej.</span>
+                </div>
+                <div class="daily-item">
+                    <strong style="color: ${netIntake > userConfig.dailyCalories ? 'var(--danger)' : 'var(--success)'}">
+                        ${netIntake > userConfig.dailyCalories ? '+' : ''}${netIntake - userConfig.dailyCalories}
+                    </strong>
+                    <span>Balance neto</span>
+                </div>
+                <div class="daily-item">
+                    <strong style="color: ${deficit >= 0 ? 'var(--success)' : 'var(--danger)'}">
+                        ${deficit >= 0 ? '+' : ''}${deficit}
+                    </strong>
+                    <span>${deficit >= 0 ? 'Déficit' : 'Superávit'}</span>
+                    <div class="progress-text">Objetivo: ${userConfig.dailyCalories} kcal</div>
+                </div>
+            `;
+
+            // Estado de salud
+            if (latestMetrics && latestMetrics.weight > 0) {
+                const weight = latestMetrics.weight;
+                const imc = (weight / Math.pow(userConfig.height / 100, 2)).toFixed(1);
+                const imcStatus = getIMCStatus(parseFloat(imc));
+                const ideal = calculateIdealWeight().toFixed(1);
+                const bmr = Math.round(calculateBMR(weight));
+
+                document.getElementById('health-status').innerHTML = `
+                    <div class="health-item">
+                        <strong>${imc}</strong>
+                        <span class="${imcStatus.color}">IMC (${imcStatus.text})</span>
+                    </div>
+                    <div class="health-item">
+                        <strong>${ideal} kg</strong>
+                        <span>Peso ideal</span>
+                    </div>
+                    <div class="health-item">
+                        <strong>${bmr}</strong>
+                        <span>Metabolismo basal</span>
+                    </div>
+                    <div class="health-item">
+                        <strong style="color: ${weight > ideal + 2 ? 'var(--danger)' : weight < ideal - 2 ? 'var(--warning)' : 'var(--success)'}">
+                            ${weight > ideal ? '+' : ''}${(weight - ideal).toFixed(1)} kg
+                        </strong>
+                        <span>vs. Ideal</span>
+                    </div>
+                `;
+            } else {
+                document.getElementById('health-status').innerHTML = `
+                    <div class="health-item">
+                        <span>Registra tu peso</span>
+                        <strong>—</strong>
+                    </div>
+                `;
+            }
+
+            // Últimas métricas
+            const container = document.getElementById('latest-metrics');
+            if (!latestMetrics || Object.values(latestMetrics).every(v => v === 0)) {
+                container.innerHTML = `<div class="metric-item"><span>No hay métricas</span><strong>—</strong></div>`;
+            } else {
+                container.innerHTML = `
+                    ${latestMetrics.weight > 0 ? `<div class="metric-item"><strong>${latestMetrics.weight.toFixed(1)}</strong><span>Peso (kg)</span></div>` : ''}
+                    ${latestMetrics.fat > 0 ? `<div class="metric-item"><strong>${latestMetrics.fat.toFixed(1)}%</strong><span>Grasa</span></div>` : ''}
+                    ${latestMetrics.muscle > 0 ? `<div class="metric-item"><strong>${latestMetrics.muscle.toFixed(1)}%</strong><span>Músculo</span></div>` : ''}
+                    ${latestMetrics.water > 0 ? `<div class="metric-item"><strong>${latestMetrics.water.toFixed(1)}%</strong><span>Agua</span></div>` : ''}
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
