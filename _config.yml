@@ -1,0 +1,30 @@
+# GitHub Pages - Configuración
+# Esto asegura que GitHub Pages sirva correctamente los archivos PWA
+
+# Theme
+theme: null
+
+# Include
+include:
+  - .nojekyll
+  - manifest.json
+  - browserconfig.xml
+  - service-worker.js
+
+# Exclude
+exclude:
+  - README.md
+  - DEPLOYMENT.md
+  - QUICK_START.md
+  - verify-pwa.sh
+  - package.json
+  - server.js
+
+# Markdown
+markdown: kramdown
+
+# Headers para PWA
+webrick:
+  headers:
+    X-Frame-Options: "SAMEORIGIN"
+    Cache-Control: "public, max-age=3600"

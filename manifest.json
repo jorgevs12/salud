@@ -2,12 +2,14 @@
   "name": "Health",
   "short_name": "Health",
   "description": "App de salud integral con sincronización de dispositivos y gestión de datos",
-  "start_url": "/index.html",
-  "scope": "/",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#000000",
   "theme_color": "#2196F3",
+  "start_display_override": ["window-controls-overlay", "standalone", "browser"],
+  "handle_links": "preferred",
   "categories": ["health", "fitness"],
   "screenshots": [
     {
@@ -36,7 +38,7 @@
       "name": "Registrar Pasos",
       "short_name": "Pasos",
       "description": "Añade rápidamente tus pasos del día",
-      "url": "/index.html?tab=tracking",
+      "url": "./index.html?tab=tracking",
       "icons": [
         {
           "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><text x='48' y='70' font-size='60' text-anchor='middle'>👣</text></svg>",
@@ -48,7 +50,7 @@
       "name": "Registrar Comida",
       "short_name": "Comida",
       "description": "Registra lo que comiste",
-      "url": "/index.html?tab=comidas",
+      "url": "./index.html?tab=comidas",
       "icons": [
         {
           "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><text x='48' y='70' font-size='60' text-anchor='middle'>🍽️</text></svg>",
@@ -60,7 +62,7 @@
       "name": "Ver Entrenamientos",
       "short_name": "Entrenamientos",
       "description": "Accede a tu historial de entrenamientos",
-      "url": "/index.html?tab=entrenos",
+      "url": "./index.html?tab=entrenos",
       "icons": [
         {
           "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><text x='48' y='70' font-size='60' text-anchor='middle'>�</text></svg>",
@@ -70,7 +72,7 @@
     }
   ],
   "share_target": {
-    "action": "/index.html",
+    "action": "./index.html",
     "method": "POST",
     "enctype": "multipart/form-data",
     "params": {

@@ -4,13 +4,13 @@
 
 const CACHE_NAME = 'health-app-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/comidas.html',
-  '/entrenos.html',
-  '/ajustes.html',
-  '/inicio.html'
+  './',
+  './index.html',
+  './manifest.json',
+  './comidas.html',
+  './entrenos.html',
+  './ajustes.html',
+  './inicio.html'
 ];
 
 // INSTALL - Cachear archivos
@@ -79,7 +79,7 @@ self.addEventListener('fetch', event => {
 
             // Página offline
             if (request.destination === 'document') {
-              return caches.match('/index.html');
+              return caches.match('./index.html');
             }
           });
       })
@@ -159,7 +159,7 @@ self.addEventListener('notificationclick', event => {
         }
       }
       if (clients.openWindow) {
-        return clients.openWindow('/index.html');
+        return clients.openWindow('./index.html');
       }
     })
   );
