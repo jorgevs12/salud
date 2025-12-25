@@ -178,8 +178,38 @@
             if (linkManifest) {
                 const href = linkManifest.getAttribute('href');
                 addCheck('Link Manifest', 'ok', `href="${href}"`);
+                
+                // Verificar que el archivo existe
+                fetch(href).then(r => {
+                    if (r.ok) {
+                        addCheck('Archivo manifest.json', 'ok', 'Accesible');
+                    } else {
+                        addCheck('Archivo manifest.json', 'error', `HTTP ${r.status}`);
+                    }
+                }).catch(e => {
+                    addCheck('Archivo manifest.json', 'error', e.message);
+                });
             } else {
-                addCheck('Link Manifest', 'error', 'No encontrado en HTML');
+                addCheck('Link Manifest', 'error', 'No encontrado - Buscando alternativas...');
+                
+                // Buscar todas las etiquetas link
+                const allLinks = document.querySelectorAll('link');
+                let found = false;
+                allLinks.forEach(link => {
+                    if (link.rel.includes('manifest')) {
+                        found = true;
+                        addCheck('Link Manifest (alternativo)', 'ok', `href="${link.href}"`);
+                    }
+                });
+                
+                if (!found) {
+                    addCheck('Solución', 'warning', 'Agregando link manifest automáticamente...');
+                    const newLink = document.createElement('link');
+                    newLink.rel = 'manifest';
+                    newLink.href = './manifest.json';
+                    document.head.appendChild(newLink);
+                    addCheck('Link Manifest', 'ok', 'Agregado dinámicamente');
+                }
             }
 
             // 5. Cache

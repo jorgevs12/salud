@@ -11,8 +11,8 @@
     <meta name="apple-mobile-web-app-title" content="Health">
     <meta name="application-name" content="Health">
     <meta name="msapplication-TileColor" content="#2196F3">
-    <meta name="msapplication-config" content="./browserconfig.xml">
-    <link rel="manifest" href="./manifest.json">
+    <meta name="msapplication-config" content="browserconfig.xml">
+    <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%232196F3' width='192' height='192'/><text x='96' y='120' font-size='100' text-anchor='middle' fill='white'>❤️</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%232196F3' width='180' height='180'/><text x='90' y='110' font-size='90' text-anchor='middle' fill='white'>❤️</text></svg>">
     <title>Health</title>
@@ -1127,7 +1127,7 @@ function addMeal(product) {
         // ========================================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
+                navigator.serviceWorker.register('service-worker.js')
                     .then(registration => {
                         console.log('✅ Service Worker registrado:', registration);
                         console.log('📱 Scope:', registration.scope);
@@ -1140,7 +1140,7 @@ function addMeal(product) {
 
         // Debug: Verificar manifest.json
         console.log('🔍 Verificando PWA...');
-        fetch('./manifest.json')
+        fetch('manifest.json')
             .then(r => r.json())
             .then(manifest => {
                 console.log('✅ Manifest.json cargado:', manifest);

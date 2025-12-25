@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Manifest</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .ok { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Test de Archivos PWA</h1>
+    <div id="results"></div>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        async function testFile(path) {
+            try {
+                const response = await fetch(path);
+                const status = response.status;
+                const content = await response.text();
+                const isJson = response.headers.get('content-type')?.includes('json');
+                
+                const div = document.createElement('div');
+                const className = status === 200 ? 'ok' : 'error';
+                div.className = className;
+                div.innerHTML = `
+                    <h3>${path}</h3>
+                    <p>Status: ${status}</p>
+                    <p>Content-Type: ${response.headers.get('content-type')}</p>
+                    <p>Tamaño: ${content.length} bytes</p>
+                    <details>
+                        <summary>Ver contenido</summary>
+                        <pre>${content.substring(0, 500)}</pre>
+                    </details>
+                `;
+                results.appendChild(div);
+            } catch (e) {
+                const div = document.createElement('div');
+                div.className = 'error';
+                div.innerHTML = `<h3>${path}</h3><p>Error: ${e.message}</p>`;
+                results.appendChild(div);
+            }
+        }
+        
+        // Test archivos
+        testFile('./manifest.json');
+        testFile('./service-worker.js');
+        testFile('./index.html');
+        testFile('./browserconfig.xml');
+        testFile('./.nojekyll');
+    </script>
+</body>
+</html>
