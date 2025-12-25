@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#2196F3">
+    <link rel="manifest" href="manifest.json">
+    <title>Verificador de Caché - Health</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            text-transform: uppercase;
+        }
+        .card {
+            background: #111111;
+            border: 2px solid #333333;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            font-size: 1rem;
+            color: #2196F3;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .item {
+            padding: 12px 0;
+            border-bottom: 1px solid #222222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .item:last-child {
+            border-bottom: none;
+        }
+        .item-name {
+            flex: 1;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+        .status {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-align: center;
+            min-width: 80px;
+        }
+        .status.success {
+            background: #44ff88;
+            color: #000000;
+        }
+        .status.error {
+            background: #ff4444;
+            color: #ffffff;
+        }
+        .status.warning {
+            background: #ffaa44;
+            color: #000000;
+        }
+        .status.loading {
+            background: #2196F3;
+            color: #ffffff;
+        }
+        .summary {
+            background: #1a1a1a;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .summary-row:last-child {
+            margin-bottom: 0;
+        }
+        .summary-label {
+            color: #aaa;
+        }
+        .summary-value {
+            font-weight: 700;
+            font-family: monospace;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        .instructions {
+            background: #111111;
+            border-left: 4px solid #44ff88;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .instructions strong {
+            color: #44ff88;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>❤️ Verificador de Caché</h1>
+
+        <div class="summary">
+            <div class="summary-row">
+                <span class="summary-label">Estado General:</span>
+                <span class="summary-value" id="general-status">Verificando...</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">index.html cacheado:</span>
+                <span class="summary-value" id="index-cached">Verificando...</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Service Worker:</span>
+                <span class="summary-value" id="sw-status">Verificando...</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Caché crítico:</span>
+                <span class="summary-value" id="critical-cache">Verificando...</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Tamaño total:</span>
+                <span class="summary-value" id="cache-size">Calculando...</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📦 Archivos en Caché Crítico</h2>
+            <div id="critical-files">
+                <div class="item">
+                    <span class="item-name">Verificando...</span>
+                    <span class="status loading">Cargando</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🗂️ Archivos en Caché General</h2>
+            <div id="general-files">
+                <div class="item">
+                    <span class="item-name">Verificando...</span>
+                    <span class="status loading">Cargando</span>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="verify()">🔄 Verificar Ahora</button>
+        <button onclick="forceCache()">📌 Forzar Caché index.html</button>
+        <button onclick="clearCache()">🗑️ Limpiar Caché</button>
+
+        <div class="instructions">
+            <strong>✅ ¿Qué significa esto?</strong><br>
+            Si ves todos los archivos con estado "✅ Cached", tu app funcionará perfectamente sin conexión a internet.
+            <br><br>
+            <strong>🔴 ¿Problemas?</strong><br>
+            - Si falta "index.html": Toca "📌 Forzar Caché"<br>
+            - Si nada aparece: Toca "🔄 Verificar Ahora"<br>
+            - Si sigue fallando: Limpia caché y refresca la página
+        </div>
+    </div>
+
+    <script>
+        async function verify() {
+            console.log('🔍 Verificando caché...');
+            
+            // Verificar Service Worker
+            if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                document.getElementById('sw-status').textContent = '✅ Activo';
+            } else {
+                document.getElementById('sw-status').textContent = '⚠️ No registrado';
+            }
+
+            // Verificar caché crítico
+            try {
+                const indexCache = await caches.open('health-index-cache');
+                const indexResponse = await indexCache.match('index.html');
+                
+                if (indexResponse) {
+                    document.getElementById('index-cached').textContent = '✅ Sí';
+                    document.getElementById('general-status').textContent = '✅ Listo para offline';
+                    document.getElementById('general-status').style.color = '#44ff88';
+                } else {
+                    document.getElementById('index-cached').textContent = '❌ No';
+                    document.getElementById('general-status').textContent = '⚠️ Falta index.html';
+                    document.getElementById('general-status').style.color = '#ffaa44';
+                }
+
+                // Listar archivos críticos
+                const criticalKeys = await indexCache.keys();
+                let criticalHtml = '';
+                for (const req of criticalKeys) {
+                    const url = new URL(req.url).pathname.split('/').pop();
+                    const resp = await indexCache.match(req);
+                    const size = resp.headers.get('content-length') || '?';
+                    criticalHtml += `
+                        <div class="item">
+                            <span class="item-name">${url}</span>
+                            <span class="status success">✅ ${(size/1024).toFixed(1)}KB</span>
+                        </div>
+                    `;
+                }
+                document.getElementById('critical-files').innerHTML = criticalHtml || 
+                    '<div class="item"><span class="item-name">Vacío</span><span class="status warning">⚠️</span></div>';
+                
+            } catch (err) {
+                console.error('❌ Error caché crítico:', err);
+                document.getElementById('critical-cache').textContent = '❌ Error';
+            }
+
+            // Verificar caché general
+            try {
+                const mainCache = await caches.open('health-app-v2-standalone');
+                const mainKeys = await mainCache.keys();
+                
+                document.getElementById('critical-cache').textContent = mainKeys.length + ' archivos';
+                
+                let generalHtml = '';
+                let totalSize = 0;
+                for (const req of mainKeys) {
+                    const url = new URL(req.url).pathname.split('/').pop();
+                    const resp = await mainCache.match(req);
+                    const size = parseInt(resp.headers.get('content-length') || 0);
+                    totalSize += size;
+                    generalHtml += `
+                        <div class="item">
+                            <span class="item-name">${url}</span>
+                            <span class="status success">✅ ${(size/1024).toFixed(1)}KB</span>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('general-files').innerHTML = generalHtml ||
+                    '<div class="item"><span class="item-name">Vacío</span><span class="status warning">⚠️</span></div>';
+                
+                document.getElementById('cache-size').textContent = (totalSize/1024).toFixed(2) + ' KB';
+                
+            } catch (err) {
+                console.error('❌ Error caché general:', err);
+            }
+
+            console.log('✅ Verificación completada');
+        }
+
+        async function forceCache() {
+            console.log('📌 Forzando caché de index.html...');
+            
+            if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                const channel = new MessageChannel();
+                
+                navigator.serviceWorker.controller.postMessage({
+                    type: 'FORCE_CACHE_INDEX'
+                }, [channel.port2]);
+                
+                channel.port1.onmessage = (event) => {
+                    if (event.data.success) {
+                        alert('✅ index.html cacheado forzosamente');
+                        verify();
+                    } else {
+                        alert('❌ Error al cachear');
+                    }
+                };
+                
+                setTimeout(() => {
+                    alert('✅ Caché actualizado. Recarga la página.');
+                    verify();
+                }, 1000);
+            } else {
+                alert('⚠️ Service Worker no disponible');
+            }
+        }
+
+        async function clearCache() {
+            if (!confirm('¿Estás seguro? Esto borrará el caché (excepto index.html).')) {
+                return;
+            }
+            
+            try {
+                await caches.delete('health-app-v2-standalone');
+                alert('✅ Caché limpiado');
+                verify();
+            } catch (err) {
+                alert('❌ Error: ' + err.message);
+            }
+        }
+
+        // Verificar al cargar
+        window.addEventListener('load', verify);
+
+        console.log('✅ Verificador de caché cargado');
+    </script>
+</body>
+</html>

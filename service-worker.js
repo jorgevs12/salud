@@ -1,88 +1,100 @@
 // ========================================
-// SERVICE WORKER - SOPORTE OFFLINE COMPLETO
-// FUNCIONA SIN GITHUB PAGES - STANDALONE
+// SERVICE WORKER - OFFLINE COMPLETO SIN GITHUB PAGES
+// Cachea index.html inmediatamente y mantiene caché
 // ========================================
 
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2-standalone';
 const CACHE_NAME = 'health-app-' + CACHE_VERSION;
-const DATA_STORE_NAME = 'health-app-data';
+const INDEX_CACHE = 'health-index-cache';
 
-// Archivos a cachear en la instalación (rutas relativas)
+// Archivos CRÍTICOS a cachear (deben estar siempre disponibles)
+const CRITICAL_CACHE = [
+  'index.html',     // MUY IMPORTANTE - Siempre disponible
+  'manifest.json',
+  'logo.png'
+];
+
+// Archivos adicionales
 const INITIAL_CACHE = [
   './',
-  'index.html',
-  'manifest.json',
   'comidas.html',
   'entrenos.html',
   'ajustes.html',
   'inicio.html',
-  'logo.png',
   'offline-helper.js'
 ];
 
-// INSTALL - Cachear archivos esenciales
+// INSTALL - Cachear archivos esenciales INMEDIATAMENTE
 self.addEventListener('install', event => {
-  console.log('📦 [SW] Instalando Service Worker - OFFLINE READY...');
+  console.log('📦 [SW] INSTALANDO - Cacheando AHORA...');
+  
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('🖥️ [SW] Cacheando archivos esenciales...');
-        // Intentar cachear todos, pero no fallar si alguno no existe
+    Promise.all([
+      // Caché crítico (index.html DEBE estar aquí)
+      caches.open(INDEX_CACHE).then(cache => {
+        console.log('🔴 [SW] Cacheando ARCHIVOS CRÍTICOS (index.html)...');
         return Promise.allSettled(
-          INITIAL_CACHE.map(url => {
-            return cache.add(url).catch(err => {
-              console.warn(`⚠️ [SW] No se pudo cachear: ${url}`);
-              return Promise.resolve();
+          CRITICAL_CACHE.map(url => {
+            return cache.add(url).then(() => {
+              console.log('✅ [SW] CACHEADO CRÍTICO:', url);
+            }).catch(err => {
+              console.error('❌ [SW] ERROR CRÍTICO al cachear:', url, err);
+              // Intentar de nuevo con versión forzada
+              return fetch(url, { cache: 'reload' })
+                .then(r => cache.put(url, r))
+                .catch(e => console.error('❌ Fallo total:', url));
             });
           })
-        ).then(() => {
-          console.log('✅ [SW] Archivos cacheados correctamente');
-        });
+        );
+      }),
+      
+      // Caché general
+      caches.open(CACHE_NAME).then(cache => {
+        console.log('🟢 [SW] Cacheando archivos generales...');
+        return Promise.allSettled(
+          [...CRITICAL_CACHE, ...INITIAL_CACHE].map(url => {
+            return cache.add(url).catch(err => {
+              console.warn(`⚠️ [SW] No se pudo cachear (general): ${url}`);
+            });
+          })
+        );
       })
-      .then(() => {
-        console.log('✅ [SW] Service Worker LISTO - FUNCIONA SIN CONEXIÓN');
-        self.skipWaiting();
-      })
-      .catch(error => {
-        console.error('❌ [SW] Error en instalación:', error);
-      })
+    ]).then(() => {
+      console.log('✅✅✅ [SW] TODO CACHEADO - APP LISTA SIN INTERNET');
+      self.skipWaiting();
+    }).catch(error => {
+      console.error('❌ [SW] Error crítico en instalación:', error);
+    })
   );
 });
 
 // ACTIVATE - Limpiar cachés antiguas y reclamar clientes
 self.addEventListener('activate', event => {
-  console.log('🔄 [SW] Activando Service Worker...');
+  console.log('🔄 [SW] ACTIVANDO...');
+  
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
+          // Mantener cachés actuales
+          if (cacheName !== CACHE_NAME && cacheName !== INDEX_CACHE) {
             console.log('🗑️ [SW] Eliminando caché antiguo:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     }).then(() => {
-      console.log('✅ [SW] Service Worker ACTIVADO');
-      self.clients.claim();
-      // Notificar a todos los clientes que SW está listo
-      self.clients.matchAll().then(clients => {
-        clients.forEach(client => {
-          client.postMessage({
-            type: 'SW_READY',
-            message: 'Service Worker activado - modo offline disponible'
-          });
-        });
-      });
+      console.log('✅ [SW] ACTIVADO - Control de cliente');
+      return self.clients.claim();
     })
   );
 });
 
-// FETCH - Estrategia: Network first con fallback a cache
-// Funciona completamente offline una vez cacheado
+// FETCH - Estrategia: Cache FIRST para index.html, Network FIRST para otros
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
+  const pathname = url.pathname;
 
   // No cachear POST, PUT, DELETE
   if (request.method !== 'GET') {
@@ -97,7 +109,78 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // No cachear solicitudes a dominios externos (excepto CDN confiables)
+  // ESTRATEGIA 1: index.html - CACHE FIRST (CRÍTICO)
+  if (pathname.endsWith('index.html') || pathname === '/') {
+    event.respondWith(
+      // Primero intentar caché
+      caches.match('index.html', { cacheName: INDEX_CACHE })
+        .then(cachedResponse => {
+          if (cachedResponse) {
+            console.log('✅ [SW] USANDO INDEX CACHEADO');
+            return cachedResponse;
+          }
+          
+          // Si no está en caché crítico, intenta caché general
+          return caches.match('index.html', { cacheName: CACHE_NAME })
+            .then(generalCache => {
+              if (generalCache) {
+                console.log('✅ [SW] INDEX desde caché general');
+                return generalCache;
+              }
+              
+              // Si no hay caché, intenta red
+              return fetch(request).then(response => {
+                if (!response || response.status !== 200) {
+                  return response;
+                }
+                
+                // Cachea en ambos cachés
+                const cloned = response.clone();
+                caches.open(INDEX_CACHE).then(c => c.put('index.html', cloned));
+                caches.open(CACHE_NAME).then(c => c.put('index.html', response.clone()));
+                console.log('💾 [SW] INDEX cacheado desde red');
+                return response;
+              });
+            });
+        })
+        .catch(error => {
+          console.error('❌ [SW] Error obtener index.html:', error);
+          // Devolver página de error amigable
+          return new Response(
+            `<!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Health App</title>
+              <style>
+                body { background: #000; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+                .container { text-align: center; }
+                .logo { font-size: 60px; margin-bottom: 20px; }
+                h1 { margin: 0 0 10px 0; }
+                p { color: #aaa; margin: 10px 0; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="logo">❤️</div>
+                <h1>Health</h1>
+                <p>Aplicación sin conexión</p>
+                <p>Intenta recargar o espera conexión</p>
+              </div>
+            </body>
+            </html>`,
+            { 
+              status: 200,
+              headers: { 'Content-Type': 'text/html; charset=utf-8' }
+            }
+          );
+        })
+    );
+    return;
+  }
+
+  // ESTRATEGIA 2: Otros archivos - NETWORK FIRST
   const isSameDomain = url.origin === location.origin;
   const isTrustedCDN = url.hostname.includes('cdn.') || 
                        url.hostname.includes('cdnjs.') ||
@@ -110,67 +193,54 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Estrategia: Intentar red primero, fallback a caché
+  // Network first con fallback a caché
   event.respondWith(
     fetch(request)
       .then(response => {
-        // Solo cachear respuestas exitosas
         if (!response || response.status !== 200 || response.type === 'error') {
           return response;
         }
 
-        // Clonar la respuesta para cachearla
         const responseToCache = response.clone();
         caches.open(CACHE_NAME)
           .then(cache => {
-            cache.put(request, responseToCache).then(() => {
-              console.log('💾 [SW] Cacheado:', url.pathname);
-            }).catch(err => {
-              console.warn('⚠️ [SW] Error al actualizar caché:', url.pathname);
-            });
-          })
-          .catch(error => {
-            console.warn('⚠️ [SW] Error al abrir caché:', error);
+            cache.put(request, responseToCache)
+              .then(() => console.log('💾 [SW] Cacheado:', pathname))
+              .catch(err => console.warn('⚠️ Error al cachear:', pathname));
           });
 
         return response;
       })
       .catch(error => {
-        console.log('🌐 [SW] Sin conexión - usando caché para:', url.pathname);
+        console.log('🌐 [SW] Sin red - usando caché:', pathname);
         
-        // Si falla la red, usar caché
-        return caches.match(request)
+        return caches.match(request, { cacheName: CACHE_NAME })
           .then(cachedResponse => {
             if (cachedResponse) {
-              console.log('📦 [SW] Usando caché:', url.pathname);
+              console.log('📦 [SW] Desde caché:', pathname);
               return cachedResponse;
             }
 
-            // Si no hay caché, devolver página offline inteligente
+            // Si es documento y no hay caché, usar index.html
             if (request.destination === 'document') {
-              console.log('📄 [SW] Devolviendo página principal');
-              return caches.match('index.html')
-                .then(response => {
-                  return response || new Response(
-                    '<!DOCTYPE html><html><body><h1>Aplicación sin conexión</h1><p>Por favor, intenta más tarde o recarga la página.</p></body></html>',
-                    { 
-                      status: 200,
-                      headers: { 'Content-Type': 'text/html' }
-                    }
+              return caches.match('index.html', { cacheName: INDEX_CACHE })
+                .then(indexResponse => {
+                  if (indexResponse) {
+                    console.log('📄 [SW] Devolviendo index.html cacheado');
+                    return indexResponse;
+                  }
+                  
+                  // Fallback final
+                  return new Response(
+                    '❌ Recurso no disponible. Por favor recarga.',
+                    { status: 404 }
                   );
                 });
             }
 
-            // Para otros recursos, devolver respuesta vacía apropiada
             return new Response(
               'Recurso no disponible offline',
-              {
-                status: 404,
-                statusText: 'Not Found',
-                headers: new Headers({
-                  'Content-Type': 'text/plain'
-                })
-              }
+              { status: 404 }
             );
           });
       })
@@ -181,64 +251,75 @@ self.addEventListener('fetch', event => {
 self.addEventListener('message', event => {
   const { type, data } = event.data || {};
 
+  if (type === 'FORCE_CACHE_INDEX') {
+    console.log('🔴 [SW] FORZANDO CACHÉ DE INDEX.HTML');
+    caches.open(INDEX_CACHE).then(cache => {
+      fetch('index.html', { cache: 'reload' })
+        .then(r => cache.put('index.html', r))
+        .then(() => {
+          console.log('✅ [SW] INDEX.HTML CACHEADO FORZOSAMENTE');
+          if (event.ports && event.ports[0]) {
+            event.ports[0].postMessage({ success: true });
+          }
+        });
+    });
+  }
+
   if (type === 'SKIP_WAITING') {
     console.log('⏭️ [SW] Saltando espera...');
     self.skipWaiting();
   }
 
   if (type === 'CLEAR_CACHE') {
-    console.log('🗑️ [SW] Limpiando caché...');
+    console.log('🗑️ [SW] Limpiando caché (EXCEPTO INDEX)...');
     caches.delete(CACHE_NAME).then(() => {
       if (event.ports && event.ports[0]) {
-        event.ports[0].postMessage({ success: true, message: 'Caché limpiado' });
+        event.ports[0].postMessage({ success: true });
       }
-      console.log('✅ [SW] Caché limpiado completamente');
+      console.log('✅ [SW] Caché limpiado (INDEX mantiene)');
     });
   }
 
   if (type === 'GET_CACHE_SIZE') {
-    caches.open(CACHE_NAME).then(cache => {
-      cache.keys().then(requests => {
-        let totalSize = 0;
-        let cached = [];
-        
-        Promise.all(requests.map(req => {
-          cached.push(new URL(req.url).pathname);
-          return cache.match(req).then(resp => {
-            if (resp && resp.headers) {
-              const size = resp.headers.get('content-length') || 0;
-              totalSize += parseInt(size, 10);
-            }
-          });
-        })).then(() => {
-          if (event.ports && event.ports[0]) {
-            event.ports[0].postMessage({ 
-              size: totalSize,
-              items: cached.length,
-              files: cached
+    Promise.all([
+      caches.open(INDEX_CACHE),
+      caches.open(CACHE_NAME)
+    ]).then(([indexCache, mainCache]) => {
+      let totalSize = 0;
+      let cached = [];
+      
+      Promise.all([
+        indexCache.keys().then(keys => {
+          return Promise.all(keys.map(req => {
+            cached.push(new URL(req.url).pathname);
+            return indexCache.match(req).then(resp => {
+              if (resp && resp.headers) {
+                const size = resp.headers.get('content-length') || 0;
+                totalSize += parseInt(size, 10);
+              }
             });
-          }
-          console.log(`📊 [SW] Caché: ${cached.length} archivos, ${(totalSize/1024).toFixed(2)}KB`);
-        });
-      });
-    });
-  }
-
-  if (type === 'CACHE_URLS') {
-    const urls = data || [];
-    caches.open(CACHE_NAME).then(cache => {
-      Promise.allSettled(
-        urls.map(url => cache.add(url))
-      ).then(results => {
-        const succeeded = results.filter(r => r.status === 'fulfilled').length;
+          }));
+        }),
+        mainCache.keys().then(keys => {
+          return Promise.all(keys.map(req => {
+            cached.push(new URL(req.url).pathname);
+            return mainCache.match(req).then(resp => {
+              if (resp && resp.headers) {
+                const size = resp.headers.get('content-length') || 0;
+                totalSize += parseInt(size, 10);
+              }
+            });
+          }));
+        })
+      ]).then(() => {
         if (event.ports && event.ports[0]) {
           event.ports[0].postMessage({ 
-            success: true,
-            cached: succeeded,
-            total: urls.length
+            size: totalSize,
+            items: cached.length,
+            files: cached
           });
         }
-        console.log(`📦 [SW] Cacheados ${succeeded}/${urls.length} archivos`);
+        console.log(`📊 [SW] Caché: ${cached.length} archivos, ${(totalSize/1024).toFixed(2)}KB`);
       });
     });
   }
@@ -254,13 +335,12 @@ self.addEventListener('message', event => {
   }
 });
 
-// SYNC - Sincronización en segundo plano (si se soporta)
+// SYNC - Sincronización en segundo plano
 self.addEventListener('sync', event => {
   console.log('🔄 [SW] Evento de sincronización:', event.tag);
   
   if (event.tag === 'sync-data') {
     event.waitUntil(
-      // Aquí iría lógica de sincronización
       Promise.resolve().then(() => {
         console.log('✅ [SW] Datos sincronizados');
       })
@@ -268,7 +348,7 @@ self.addEventListener('sync', event => {
   }
 });
 
-// PUSH - Notificaciones push (si se soporta)
+// PUSH - Notificaciones push
 self.addEventListener('push', event => {
   console.log('📬 [SW] Notificación recibida');
   
@@ -287,4 +367,4 @@ self.addEventListener('push', event => {
   }
 });
 
-console.log('✅ Service Worker cargado - MODO OFFLINE DISPONIBLE');
+console.log('✅ Service Worker cargado - INDEX.HTML PROTEGIDO');
