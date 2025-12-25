@@ -9,6 +9,14 @@
   "theme_color": "#2196F3",
   "background_color": "#000000",
   "categories": ["health", "fitness"],
+  "screenshots": [
+    {
+      "src": "logo.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
   "icons": [
     {
       "src": "logo.png",
@@ -55,5 +63,6 @@
         }
       ]
     }
-  }
+  },
+  "prefer_related_applications": false
 }

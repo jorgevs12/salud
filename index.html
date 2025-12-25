@@ -1117,33 +1117,103 @@ function addMeal(product) {
         }
 
         // ========================================
-        // REGISTRAR SERVICE WORKER - PWA
+        // REGISTRAR SERVICE WORKER - PWA OFFLINE FIRST
         // ========================================
-        // REGISTRAR SERVICE WORKER - PWA
-        // ========================================
+        console.log('🚀 Health App - Iniciando PWA...');
+
+        // Registrar Service Worker
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('service-worker.js')
-                    .then(registration => {
-                        console.log('✅ Service Worker registrado:', registration);
-                        console.log('📱 Scope:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.warn('❌ Error al registrar Service Worker:', error);
+            window.addEventListener('load', async () => {
+                try {
+                    console.log('📡 Registrando Service Worker desde:', window.location.href);
+                    
+                    const registration = await navigator.serviceWorker.register('service-worker.js', {
+                        scope: './',
+                        updateViaCache: 'none'
                     });
+                    
+                    console.log('✅ Service Worker REGISTRADO');
+                    console.log('📱 Scope:', registration.scope);
+                    console.log('🔄 Estado:', registration.active ? 'ACTIVO' : 'PENDIENTE');
+                    
+                    // Escuchar mensajes del Service Worker
+                    navigator.serviceWorker.addEventListener('message', event => {
+                        const { type, message, offline } = event.data || {};
+                        
+                        if (type === 'SW_READY') {
+                            console.log('✅ [APP] SW lista:', message);
+                            // Aquí puedes actualizar UI si es necesario
+                            window.swReady = true;
+                        }
+                    });
+                    
+                    // Actualizar SW si hay cambios (cada vez que carga)
+                    if (registration.waiting) {
+                        console.log('� Actualizando Service Worker (versión nueva disponible)');
+                        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                    
+                    // Escuchar actualizaciones
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        console.log('📦 Nueva versión del SW disponible');
+                        
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'activated') {
+                                console.log('✅ SW actualizado - recargando app');
+                                window.location.reload();
+                            }
+                        });
+                    });
+                    
+                } catch (error) {
+                    console.error('❌ Error al registrar Service Worker:', error);
+                    console.warn('⚠️ App funcionará SIN soporte offline');
+                }
             });
+        } else {
+            console.warn('⚠️ Service Workers no soportados en este navegador');
         }
 
-        // Debug: Verificar manifest.json
+        // Verificar PWA
         console.log('🔍 Verificando PWA...');
-        fetch('manifest.json')
-            .then(r => r.json())
+        
+        // Verificar manifest
+        fetch('manifest.json', { cache: 'no-cache' })
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
             .then(manifest => {
-                console.log('✅ Manifest.json cargado:', manifest);
+                console.log('✅ manifest.json cargado');
+                console.log('  Nombre:', manifest.name);
+                console.log('  Start URL:', manifest.start_url);
+                console.log('  Scope:', manifest.scope);
             })
             .catch(e => {
-                console.error('❌ Error cargando manifest:', e);
+                console.error('❌ Error cargando manifest.json:', e.message);
             });
+        
+        // Detectar conexión offline/online
+        window.addEventListener('online', () => {
+            console.log('🟢 CONECTADO - App sincronizando');
+            if (window.offlineHelper && window.offlineHelper.syncData) {
+                window.offlineHelper.syncData();
+            }
+        });
+        
+        window.addEventListener('offline', () => {
+            console.log('🔴 SIN CONEXIÓN - Usando caché');
+        });
+        
+        // Estado inicial
+        if (navigator.onLine) {
+            console.log('🟢 Estado inicial: CONECTADO');
+        } else {
+            console.log('🔴 Estado inicial: SIN CONEXIÓN');
+        }
+        
+        console.log('✅ Health App lista - Modo OFFLINE disponible');
 
     </script>
 </body>
